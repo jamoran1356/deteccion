@@ -12,7 +12,7 @@
 
  ## Objetivos:
  ### Objetivo General
-	Desarrollar una aplicación informática para la detección y alarma de posturas corporales incorrectas en usuarios de equipos de computación.
+Desarrollar una aplicación informática para la detección y alarma de posturas corporales incorrectas en usuarios de equipos de computación.
 
 ### Objetivos Específicos    
 * Analizar los procesos llevados a cabo actualmente para detectar posturas corporales incorrectas en usuarios de equipos de computación.
