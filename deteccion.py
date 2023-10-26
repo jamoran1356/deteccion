@@ -4,21 +4,37 @@ import tkinter.font as tkfont
 import cv2
 
 
+
+def comenzar_captura():
+  cap = cv2.VideoCapture(0,cv2.CAP_DSHOW)
+
+  x1, y1 = 190,80
+  x2, y2 = 450,398
+
+  count = 0
+
+  while True:
+    ret, frame = cap.read()
+    if ret == False: break
+
+    cv2.imshow('frame', frame)
+      
+    k = cv2.waitKey(1) 
+    if k == 27:
+      break
+  cap.release()
+  
+  cv2.destroyAllWindows()    
+
 # Función para el botón Calibrar
 def boton_calibrar():
     # Muestra un mensaje en el cuadrado
-    cuadrado = tk.Canvas(ventana, width=480, height=480, bg="#000000")
+    cuadrado = tk.Canvas(ventana, width=480, height=480, bg="#DAD9D9")
     cuadrado.grid(row=0, column=0, sticky="nsew")
     cuadrado.delete("all")
-    cuadrado.create_text(0, 0, text="Se presionó el botón calibrar", anchor="nw", fill="#ffffff")
     cuadrado.grid(row=0, column=0, sticky="nsew", columnspan=3)
 
-    # Obtiene una lista de las cámaras disponibles
-    camaras = cv2.VideoCapture.list_cameras()
-
-    # Imprime la lista de las cámaras disponibles
-    for camara in camaras:
-      print(camara)
+    cuadrado.after(50, lambda: comenzar_captura())
 
 
 # Función para el botón Configurar
@@ -67,18 +83,26 @@ def boton_detectar():
 
 # Función para el botón Documentación
 def boton_documentacion():
+    # Abre el archivo de texto
+    archivo = open("documentacion.txt", "r")
+    # Lee el contenido del archivo
+    contenido = archivo.read()
+
     # Muestra un mensaje en el cuadrado
-    cuadrado = tk.Canvas(ventana, width=480, height=480, bg="#000000")
+    cuadrado = tk.Canvas(ventana, width=480, height=480, bg="#FFFFFF")
     cuadrado.grid(row=0, column=0, sticky="nsew")
     cuadrado.delete("all")
-    cuadrado.create_text(0, 0, text="Se presionó el botón Documentación", anchor="nw", fill="#ffffff")
+    cuadrado.create_text(10, 2, text=contenido, anchor="nw", fill="#220202")
     cuadrado.grid(row=0, column=0, sticky="nsew", columnspan=3)
+
+
+
 
 
 # Función para el botón Acerca de
 def boton_acerca_de():
   # Muestra un mensaje en el cuadrado
-  cuadrado = tk.Canvas(ventana, width=480, height=480, bg="#DAD9D9")
+  cuadrado = tk.Canvas(ventana, width=480, height=480, bg="#FFFFFF")
   cuadrado.grid(row=0, column=0, sticky="nsew")
   cuadrado.delete("all")
   cuadrado.grid(row=0, column=0, sticky="nsew", columnspan=3)
@@ -116,6 +140,7 @@ def boton_acerca_de():
 def boton_salir():
     # Cierra la ventana
     ventana.destroy()
+
 
 
 # Crea la ventana
