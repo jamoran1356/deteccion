@@ -1,41 +1,15 @@
 import platform
+from PIL import Image, ImageTk
 import tkinter as tk
 import tkinter.font as tkfont
 import cv2
+import chardet
 
-
-
-def comenzar_captura():
-  cap = cv2.VideoCapture(0,cv2.CAP_DSHOW)
-
-  x1, y1 = 190,80
-  x2, y2 = 450,398
-
-  count = 0
-
-  while True:
-    ret, frame = cap.read()
-    if ret == False: break
-
-    cv2.imshow('frame', frame)
-      
-    k = cv2.waitKey(1) 
-    if k == 27:
-      break
-  cap.release()
-  
-  cv2.destroyAllWindows()    
-
-# Función para el botón Calibrar
-def boton_calibrar():
-    # Muestra un mensaje en el cuadrado
-    cuadrado = tk.Canvas(ventana, width=480, height=480, bg="#DAD9D9")
-    cuadrado.grid(row=0, column=0, sticky="nsew")
-    cuadrado.delete("all")
-    cuadrado.grid(row=0, column=0, sticky="nsew", columnspan=3)
-
-    cuadrado.after(50, lambda: comenzar_captura())
-
+def boton_calibrar():  
+  cuadrado = tk.Canvas(ventana, width=480, height=480, bg="#FFFFFF")
+  cuadrado.grid(row=0, column=0, sticky="nsew")
+  cuadrado.delete("all")
+  cuadrado.grid(row=0, column=0, sticky="nsew", columnspan=3)
 
 # Función para el botón Configurar
 def boton_configurar():
@@ -83,20 +57,28 @@ def boton_detectar():
 
 # Función para el botón Documentación
 def boton_documentacion():
+    # Obtener la codificación del archivo
+    with open("documentacion.txt", "rb") as archivo:
+        contenido = archivo.read()
+
+    # Detectar la codificación del archivo
+    encoding = chardet.detect(contenido)["encoding"]
+
+    # Si la codificación es desconocida, establecerla a ISO-8859-1
+    if encoding is None:
+        encoding = "iso-8859-1"
+
     # Abre el archivo de texto
-    archivo = open("documentacion.txt", "r")
-    # Lee el contenido del archivo
-    contenido = archivo.read()
+    with open("documentacion.txt", "r", encoding=encoding) as archivo:
+        # Lee el contenido del archivo
+        texto = archivo.read()
 
     # Muestra un mensaje en el cuadrado
     cuadrado = tk.Canvas(ventana, width=480, height=480, bg="#FFFFFF")
     cuadrado.grid(row=0, column=0, sticky="nsew")
     cuadrado.delete("all")
-    cuadrado.create_text(10, 2, text=contenido, anchor="nw", fill="#220202")
+    cuadrado.create_text(10, 2, text=texto, anchor="nw", fill="#220202")
     cuadrado.grid(row=0, column=0, sticky="nsew", columnspan=3)
-
-
-
 
 
 # Función para el botón Acerca de
@@ -148,8 +130,18 @@ ventana = tk.Tk()
 ventana.title("Aplicación de detección y alerta")
 
 # Crea el cuadrado negro
-cuadrado = tk.Canvas(ventana, width=480, height=480, bg="#000000")
+cuadrado = tk.Canvas(ventana, width=480, height=480, bg="#ffffff")
 cuadrado.grid(row=0, column=0, sticky="nsew")
+fuente_titulo = tk.font.Font(family="Arial", size=13, weight="bold")
+cuadrado.create_text(240, 50, text="Aplicación informática para la detección y alerta de", font=fuente_titulo, anchor="center")
+cuadrado.create_text(240, 70, text="posturas corporales incorrectas en usuarios", font=fuente_titulo, anchor="center")
+cuadrado.create_text(240, 90, text="de equipos de computación", font=fuente_titulo, anchor="center")
+# Crea la imagen
+imagen = Image.open("logo.jpg")
+image = ImageTk.PhotoImage(imagen)
+
+# Coloca la imagen debajo del texto
+cuadrado.create_image(240, 200, image=image, anchor="center")
 
 # Crea los botones
 boton_calibrar = tk.Button(ventana, text="Calibrar", command=boton_calibrar)
