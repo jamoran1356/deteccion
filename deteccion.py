@@ -5,14 +5,42 @@ import tkinter.font as tkfont
 import cv2
 import chardet
 
+
 def boton_calibrar():  
-  cuadrado = tk.Canvas(ventana, width=480, height=480, bg="#FFFFFF")
-  cuadrado.grid(row=0, column=0, sticky="nsew")
-  cuadrado.delete("all")
-  cuadrado.grid(row=0, column=0, sticky="nsew", columnspan=3)
+    # Muestra un mensaje en el cuadrado
+    cuadrado = tk.Canvas(ventana, width=480, height=480, bg="#000000")
+    cuadrado.grid(row=0, column=0, sticky="nsew")
+    cuadrado.delete("all")
+    cuadrado.create_text(0, 0, text="Se presionó el botón detectar", anchor="nw", fill="#ffffff")
+    cuadrado.grid(row=0, column=0, sticky="nsew", columnspan=3)
+
+    # Crea un label para mostrar la imagen
+    muestra_imagen = tk.Label(cuadrado, width=480, height=480, bg="#cccccc")
+    muestra_imagen.place(x=0, y=0)
+
+    # Abre la imagen
+    captura = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+    
+    while True:
+      ret, frame = captura.read()
+      # Muestra la imagen en el label
+      #frame = imutils.resize(frame, width=480, height=480)
+      img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+      img = Image.fromarray(img)
+      img = ImageTk.PhotoImage(img)
+      muestra_imagen.configure(image=img)
+      muestra_imagen.image = img
+      #Actualiza la pantalla
+      ventana.update()
+
+      # Si se presiona la tecla ESC, se detiene el video
+      tecla = cv2.waitKey(1) & 0xFF
+      if tecla == 27:
+        break
 
 # Función para el botón Configurar
 def boton_configurar():
+    apagar_camara()
     # Muestra un mensaje en el cuadrado
     cuadrado = tk.Canvas(ventana, width=480, height=480, bg="#DAD9D9")
     cuadrado.grid(row=0, column=0, sticky="nsew")
@@ -31,28 +59,46 @@ def boton_configurar():
 # Función para el botón Detectar
 def boton_detectar():
   # Muestra un mensaje en el cuadrado
-  cuadrado = tk.Canvas(ventana, width=480, height=480, bg="#000000")
-  cuadrado.grid(row=0, column=0, sticky="nsew")
-  cuadrado.delete("all")
-  cuadrado.create_text(0, 0, text="Se presionó el botón detectar", anchor="nw", fill="#ffffff")
-  cuadrado.grid(row=0, column=0, sticky="nsew", columnspan=3)
+    cuadrado = tk.Canvas(ventana, width=480, height=480, bg="#000000")
+    cuadrado.grid(row=0, column=0, sticky="nsew")
+    cuadrado.delete("all")
+    cuadrado.create_text(0, 0, text="Se presionó el botón detectar", anchor="nw", fill="#ffffff")
+    cuadrado.grid(row=0, column=0, sticky="nsew", columnspan=3)
 
-  # Minimiza la ventana
-  ventana.iconify()
+    # Crea un label para mostrar la imagen
+    muestra_imagen = tk.Label(cuadrado, width=480, height=480, bg="#cccccc")
+    muestra_imagen.place(x=0, y=0)
+     # Minimiza la ventana
+    ventana.iconify()
 
-  # Coloca la ventana en la barra de la hora
-  if platform.system() == "Windows":
-    ventana.wm_state("iconic")
-  elif platform.system() == "Darwin":
-    ventana.wm_state("iconified")
-  else:
-    ventana.wm_state("minimized")
+    # Coloca la ventana en la barra de la hora
+    if platform.system() == "Windows":
+      ventana.wm_state("iconic")
+    elif platform.system() == "Darwin":
+      ventana.wm_state("iconified")
+    else:
+      ventana.wm_state("minimized")
 
-  # Muestra un mensaje en el cuadrado
-  cuadrado.delete("all")
-  cuadrado.create_text(0, 0, text="Se ha comenzado con la detección", anchor="nw", fill="#ffffff")
-  cuadrado.grid(row=0, column=0, sticky="nsew", columnspan=3)
 
+    # Abre la imagen
+    captura = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+    
+    while True:
+      ret, frame = captura.read()
+      # Muestra la imagen en el label
+      #frame = imutils.resize(frame, width=480, height=480)
+      img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+      img = Image.fromarray(img)
+      img = ImageTk.PhotoImage(img)
+      muestra_imagen.configure(image=img)
+      muestra_imagen.image = img
+      #Actualiza la pantalla
+      ventana.update()
+
+      # Si se presiona la tecla ESC, se detiene el video
+      tecla = cv2.waitKey(1) & 0xFF
+      if tecla == 27:
+        break
 
 
 # Función para el botón Documentación
@@ -123,11 +169,24 @@ def boton_salir():
     # Cierra la ventana
     ventana.destroy()
 
+# Comprobar si la camara esta encendida
+def apagar_camara():
+    captura = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+    ret, frame = captura.read()
+    if ret == True:
+      captura.release() 
+      return True
+    else:
+      return False
 
 
+
+# Interface principal de la aplicacion 
 # Crea la ventana
 ventana = tk.Tk()
 ventana.title("Aplicación de detección y alerta")
+ventana.geometry('480x536')
+ventana.resizable(width=False, height=False)
 
 # Crea el cuadrado negro
 cuadrado = tk.Canvas(ventana, width=480, height=480, bg="#ffffff")
