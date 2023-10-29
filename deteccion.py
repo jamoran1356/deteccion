@@ -1,9 +1,16 @@
 import platform
+import time
 from PIL import Image, ImageTk
 import tkinter as tk
 import tkinter.font as tkfont
 import cv2
 import chardet
+import mediapipe as mp
+import os
+
+mp_drawing = mp.solutions.drawing_utils
+mp_pose = mp.solutions.pose
+
 
 
 def boton_calibrar():  
@@ -14,29 +21,52 @@ def boton_calibrar():
     cuadrado.create_text(0, 0, text="Se presionó el botón detectar", anchor="nw", fill="#ffffff")
     cuadrado.grid(row=0, column=0, sticky="nsew", columnspan=3)
 
+    #etiqueta cuenta regresiva
+    etiqueta_cuenta_regresiva = tk.Label(cuadrado, text="5", fg="white", bg="#000000", font=("Arial", 200))
+    etiqueta_cuenta_regresiva.place(x=10, y=50)
+
     # Crea un label para mostrar la imagen
     muestra_imagen = tk.Label(cuadrado, width=480, height=480, bg="#cccccc")
     muestra_imagen.place(x=0, y=0)
 
+    for i in range(5):
+      # Actualiza la etiqueta con el número de segundos restantes
+      etiqueta_cuenta_regresiva.configure(text=str(i+1))
+      # Actualiza la pantalla
+      ventana.update()
+      time.sleep(1)
+
     # Abre la imagen
     captura = cv2.VideoCapture(0, cv2.CAP_DSHOW)
-    
-    while True:
-      ret, frame = captura.read()
-      # Muestra la imagen en el label
-      #frame = imutils.resize(frame, width=480, height=480)
-      img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-      img = Image.fromarray(img)
-      img = ImageTk.PhotoImage(img)
-      muestra_imagen.configure(image=img)
-      muestra_imagen.image = img
-      #Actualiza la pantalla
-      ventana.update()
+    # Crea un objeto Pose
+    with mp_pose.Pose(static_image_mode=False) as pose:
+      
+               
+      while True:
+        ret, frame = captura.read()
+        if ret == False:
+          break
 
-      # Si se presiona la tecla ESC, se detiene el video
-      tecla = cv2.waitKey(1) & 0xFF
-      if tecla == 27:
-        break
+        results = pose.process(frame)
+        
+        # Dibuja los puntos de referencia de la pose
+        if results.pose_landmarks is  not  None:
+           mp_drawing.draw_landmarks(frame, results.pose_landmarks, mp_pose.POSE_CONNECTIONS,
+                                          mp_drawing.DrawingSpec(color=(85, 43, 9), thickness=2, circle_radius=3),
+                                          mp_drawing.DrawingSpec(color=(255, 255, 255), thickness=2))
+           
+        img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        img = Image.fromarray(img)
+        img = ImageTk.PhotoImage(img)
+        muestra_imagen.configure(image=img)
+        muestra_imagen.image = img
+        #Actualiza la pantalla
+        ventana.update()
+
+        # Si se presiona la tecla ESC, se detiene el video
+        tecla = cv2.waitKey(1) & 0xFF
+        if tecla == 27:
+          break
 
 # Función para el botón Configurar
 def boton_configurar():
@@ -79,26 +109,6 @@ def boton_detectar():
     else:
       ventana.wm_state("minimized")
 
-
-    # Abre la imagen
-    captura = cv2.VideoCapture(0, cv2.CAP_DSHOW)
-    
-    while True:
-      ret, frame = captura.read()
-      # Muestra la imagen en el label
-      #frame = imutils.resize(frame, width=480, height=480)
-      img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-      img = Image.fromarray(img)
-      img = ImageTk.PhotoImage(img)
-      muestra_imagen.configure(image=img)
-      muestra_imagen.image = img
-      #Actualiza la pantalla
-      ventana.update()
-
-      # Si se presiona la tecla ESC, se detiene el video
-      tecla = cv2.waitKey(1) & 0xFF
-      if tecla == 27:
-        break
 
 
 # Función para el botón Documentación

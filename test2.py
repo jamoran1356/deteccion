@@ -4,7 +4,7 @@ import mediapipe as mp
 mp_drawing = mp.solutions.drawing_utils
 mp_pose = mp.solutions.pose
 
-image = cv2.VideoCapture(0)
+image = cv2.imread('Imagen1.jpg')
 
 with mp_pose.Pose(static_image_mode = False) as pose:
 
