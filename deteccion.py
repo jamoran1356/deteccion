@@ -1,5 +1,8 @@
+import pygame
+from tkinter import filedialog
 import platform
 import time
+import winsound
 from PIL import Image, ImageTk
 import tkinter as tk
 import tkinter.font as tkfont
@@ -8,11 +11,31 @@ import chardet
 import mediapipe as mp
 import os
 import tkinter.messagebox as messagebox
-
 import numpy as np
 
 mp_drawing = mp.solutions.drawing_utils
 mp_pose = mp.solutions.pose
+
+
+# Inicializa el mezclador de pygame
+pygame.mixer.init()
+
+# Crea una variable para almacenar el sonido
+sound = None
+
+def ajustar_volumen():
+    # Aquí puedes ajustar el volumen. El valor debe estar entre 0.0 y 1.0.
+    volumen = 0.5
+    if sound is not None:
+        sound.set_volume(volumen)
+
+def seleccionar_sonido():
+    global sound
+    # Abre un cuadro de diálogo para seleccionar un archivo de sonido
+    filename = filedialog.askopenfilename(filetypes=[("Sound files", "*.wav")])
+    if filename:
+        # Carga el sonido y lo almacena en la variable sound
+        sound = pygame.mixer.Sound(filename)
 
 
 def boton_calibrar():  
@@ -95,12 +118,11 @@ def boton_configurar():
     cuadrado.grid(row=0, column=0, sticky="nsew", columnspan=3)
 
     # Crea los botones de sonido
-    boton_volumen = tk.Button(cuadrado, text="Volumen", padx=20, pady=10, width=20, anchor="center") 
+    boton_volumen = tk.Button(cuadrado, text="Volumen", padx=20, pady=10, width=20, anchor="center", command=ajustar_volumen) 
     boton_volumen.place(x=150, y=100)
-    boton_tono = tk.Button(cuadrado, text="Tono", padx=20, pady=10, width=20, anchor="center") 
+    boton_tono = tk.Button(cuadrado, text="Tono", padx=20, pady=10, width=20, anchor="center", command=seleccionar_sonido) 
     boton_tono.place(x=150, y=150)
-    boton_eco = tk.Button(cuadrado, text="Eco", padx=20, pady=10, width=20, anchor="center") 
-    boton_eco.place(x=150, y=200)
+    
 
 
 # Función para el botón Detectar
@@ -162,8 +184,11 @@ def boton_detectar():
             diff = np.linalg.norm(pose_current - pose_ref) / len(pose_current)
 
             # Si la diferencia es mayor que el 5%, lanzamos un mensaje de alerta
-            if diff > 0.05:
+            if diff > 0.15:
+              ventana.wm_state("normal")
+              winsound.PlaySound("SystemHand", winsound.SND_ALIAS)
               messagebox.showinfo("Alerta", "Has adoptado una postura incorrecta, por favor corrigela")
+              break
 
           img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
           img = Image.fromarray(img)
