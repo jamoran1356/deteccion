@@ -9,81 +9,68 @@ import mediapipe as mp
 import os
 import tkinter.messagebox as messagebox
 
-import numpy as np
-
 mp_drawing = mp.solutions.drawing_utils
 mp_pose = mp.solutions.pose
 
-
-def boton_calibrar():  
-    # Define una variable para almacenar el tiempo actual
-    tiempo_actual = time.time()
-    image_counter = 0
-    # Define una variable para almacenar el tiempo de inicio de la grabación
-    tiempo_inicio = tiempo_actual + 5
+def boton_calibrar():
     # Muestra un mensaje en el cuadrado
     cuadrado = tk.Canvas(ventana, width=480, height=480, bg="#000000")
     cuadrado.grid(row=0, column=0, sticky="nsew")
     cuadrado.delete("all")
     cuadrado.create_text(0, 0, text="Se presionó el botón detectar", anchor="nw", fill="#ffffff")
     cuadrado.grid(row=0, column=0, sticky="nsew", columnspan=3)
-    
+
     # Crea un label para mostrar la imagen
     muestra_imagen = tk.Label(cuadrado, width=480, height=480, bg="#cccccc")
     muestra_imagen.place(x=0, y=0)
-    # Lanza mensaje para preparar al usuario para almacenar la pose
+    # Espera a que termine la cuenta regresiva
     messagebox.showinfo("Alerta", "La grabación comenzará pronto, por favor colocate en la posición adecuada")
 
     # Abre la imagen
     captura = cv2.VideoCapture(0, cv2.CAP_DSHOW)
-    fourcc = cv2.VideoWriter_fourcc(*'MP4V') # Cambia el códec a 'mp4v'
-    salida = cv2.VideoWriter('calibracion.mp4', fourcc, 10.0, (640,480))
-    salida_img = "calibracion_.png".format(image_counter)
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+    salida = cv2.VideoWriter('calibracion.mp4', fourcc, 10, (640, 480))
 
     # Crea un objeto Pose
     with mp_pose.Pose(static_image_mode=False) as pose:
 
-      while True:
-        ret, frame = captura.read()
-        if ret == False:
-          break
+        while True:
+            ret, frame = captura.read()
+            if ret == False:
+                break
 
-        
-        results = pose.process(frame)
-        
-        # Dibuja los puntos de referencia de la pose
-        if results.pose_landmarks is  not  None:
-           mp_drawing.draw_landmarks(frame, results.pose_landmarks, mp_pose.POSE_CONNECTIONS,
-                                          mp_drawing.DrawingSpec(color=(85, 43, 9), thickness=2, circle_radius=3),
-                                          mp_drawing.DrawingSpec(color=(255, 255, 255), thickness=2))
-           
-        img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        imgex = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        img = Image.fromarray(img)
-        img = ImageTk.PhotoImage(img)
-        muestra_imagen.configure(image=img)
-        muestra_imagen.image = img
+            results = pose.process(frame)
 
-        # Verifica si el tiempo actual es mayor que el tiempo de inicio
-        tiempo_actual = time.time()
-        if tiempo_actual > tiempo_inicio:
-            salida.write(imgex)
-            cv2.imwrite(salida_img, imgex)
-            image_counter += 1
+            # Dibuja los puntos de referencia de la pose
+            if results.pose_landmarks is not None:
+                mp_drawing.draw_landmarks(frame, results.pose_landmarks, mp_pose.POSE_CONNECTIONS,
+                                         mp_drawing.DrawingSpec(color=(85, 43, 9), thickness=2, circle_radius=3),
+                                         mp_drawing.DrawingSpec(color=(255, 255, 255), thickness=2))
 
-        tiempo_transcurrido = time.time() - tiempo_inicio
-        if tiempo_transcurrido > 5:
-            messagebox.showinfo("Alerta", "La grabación ha finalizado")
-            break
+            img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            img = Image.fromarray(img)
+            img = ImageTk.PhotoImage(img)
+            muestra_imagen.configure(image=img)
+            muestra_imagen.image = img
 
-        ventana.update()
+            # Convert the NumPy array to a OpenCV-compatible data type
+            pose_landmarks_cv2 = cv2.UMat(results.pose_landmarks, cols=results.pose_landmarks.shape[1], type=results.pose_landmarks.dtype)
 
-        # Si se presiona la tecla ESC, se detiene el video
-        tecla = cv2.waitKey(1) & 0xFF
-        if tecla == 27:
-          break
+            # Write the pose landmark data to the video file
+            salida.write(pose_landmarks_cv2)
+
+            # Actualiza la pantalla
+            ventana.update()
+
+            # Si se presiona la tecla ESC, se detiene el video
+            tecla = cv2.waitKey(1) & 0xFF
+            if tecla == 27:
+                break
+
     salida.release()
     captura.release()
+
+
 
 # Función para el botón Configurar
 def boton_configurar():
@@ -105,79 +92,27 @@ def boton_configurar():
 
 # Función para el botón Detectar
 def boton_detectar():
-
-    
-
-    # Muestra un mensaje en el cuadrado
+  # Muestra un mensaje en el cuadrado
     cuadrado = tk.Canvas(ventana, width=480, height=480, bg="#000000")
     cuadrado.grid(row=0, column=0, sticky="nsew")
     cuadrado.delete("all")
     cuadrado.create_text(0, 0, text="Se presionó el botón detectar", anchor="nw", fill="#ffffff")
     cuadrado.grid(row=0, column=0, sticky="nsew", columnspan=3)
 
-
-    # Minimiza la ventana
+    # Crea un label para mostrar la imagen
+    muestra_imagen = tk.Label(cuadrado, width=480, height=480, bg="#cccccc")
+    muestra_imagen.place(x=0, y=0)
+     # Minimiza la ventana
     ventana.iconify()
 
     # Coloca la ventana en la barra de la hora
     if platform.system() == "Windows":
-        ventana.wm_state("iconic")
+      ventana.wm_state("iconic")
     elif platform.system() == "Darwin":
-        ventana.wm_state("iconified")
+      ventana.wm_state("iconified")
     else:
-        ventana.wm_state("minimized")
+      ventana.wm_state("minimized")
 
-    # Obtenemos la imagen de referencia
-    img_ref = cv2.imread('calibracion_.png')
-
-    #creamos el objeto pose
-    with mp_pose.Pose(static_image_mode=False) as pose:
-        #procesamos la imagen de referencia para obtener los puntos de pose
-        results_ref = pose.process(cv2.cvtColor(img_ref, cv2.COLOR_BGR2RGB))
-        if results_ref.pose_landmarks is None:
-            messagebox.showinfo("Alerta", "No se detectaron puntos de referencia")
-            return
-         #convertimos los puntos de pose a un array numpy para facilitar las comparaciones
-        pose_ref = np.array([[lmk.x, lmk.y, lmk.z] for lmk in results_ref.pose_landmarks.landmark], dtype=np.float32)
-
-        # Crea un label para mostrar la imagen
-        muestra_imagen = tk.Label(cuadrado, width=480, height=480, bg="#cccccc")
-        muestra_imagen.place(x=0, y=0)
-
-        # Abre la imagen
-        captura = cv2.VideoCapture(0, cv2.CAP_DSHOW)
-
-        # Crea un objeto Pose
-
-        while True:
-          ret, frame = captura.read()
-          if ret == False:
-            break
-          results = pose.process(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
-          # Dibuja los puntos de referencia de la pose
-          if results.pose_landmarks is  not  None:
-            mp_drawing.draw_landmarks(frame, results.pose_landmarks, mp_pose.POSE_CONNECTIONS,
-                                            mp_drawing.DrawingSpec(color=(85, 43, 9), thickness=2, circle_radius=3),
-                                            mp_drawing.DrawingSpec(color=(255, 255, 255), thickness=2))
-          
-            pose = np.array([[lmk.x, lmk.y, lmk.z] for lmk in results.pose_landmarks.landmark], dtype=np.float32)
-            # Calculamos la diferencia entre los puntos de pose
-            diff = np.linalg.norm(pose - pose_ref) / len(pose)
-
-            # Si la diferencia es mayor que el 5%, lanzamos un mensaje de alerta
-            if diff > 0.05:
-              messagebox.showinfo("Alerta", "Has adoptado una postura incorrecta, por favor corrigela")
-
-          img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-          img = Image.fromarray(img)
-          img = ImageTk.PhotoImage(img)
-          muestra_imagen.configure(image=img)
-          muestra_imagen.image = img
-          ventana.update()
-          
-          tecla = cv2.waitKey(1) & 0xFF
-          if tecla == 27:
-                  break
 
 
 # Función para el botón Documentación
@@ -299,5 +234,4 @@ boton_acerca_de.grid(row=2, column=1, sticky="nsew")
 boton_salir.grid(row=2, column=2, sticky="nsew")
 
 ventana.mainloop()
-
 
