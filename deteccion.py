@@ -105,9 +105,6 @@ def boton_configurar():
 
 # Función para el botón Detectar
 def boton_detectar():
-
-    
-
     # Muestra un mensaje en el cuadrado
     cuadrado = tk.Canvas(ventana, width=480, height=480, bg="#000000")
     cuadrado.grid(row=0, column=0, sticky="nsew")
@@ -160,9 +157,9 @@ def boton_detectar():
                                             mp_drawing.DrawingSpec(color=(85, 43, 9), thickness=2, circle_radius=3),
                                             mp_drawing.DrawingSpec(color=(255, 255, 255), thickness=2))
           
-            pose = np.array([[lmk.x, lmk.y, lmk.z] for lmk in results.pose_landmarks.landmark], dtype=np.float32)
+            pose_current = np.array([[lmk.x, lmk.y, lmk.z] for lmk in results.pose_landmarks.landmark], dtype=np.float32)
             # Calculamos la diferencia entre los puntos de pose
-            diff = np.linalg.norm(pose - pose_ref) / len(pose)
+            diff = np.linalg.norm(pose_current - pose_ref) / len(pose_current)
 
             # Si la diferencia es mayor que el 5%, lanzamos un mensaje de alerta
             if diff > 0.05:
